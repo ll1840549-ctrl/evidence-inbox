@@ -1,0 +1,25 @@
+{
+  "name": "evidence-inbox-local",
+  "version": "0.1.0",
+  "description": "Local-first evidence inbox with content-first classification, SHA256 de-duplication, and audit trails.",
+  "type": "module",
+  "bin": {
+    "evidence-inbox": "src/cli.js"
+  },
+  "scripts": {
+    "check": "node --check src/cli.js && node --check src/pipeline.js && node --check src/store.js",
+    "test": "node --test",
+    "verify": "npm run check && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "document-management",
+    "local-first",
+    "sha256",
+    "audit-trail",
+    "chinese"
+  ],
+  "license": "MIT"
+}
