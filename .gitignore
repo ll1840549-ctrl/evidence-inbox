@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+.env
+.env.*
+!.env.example
+.evidence-inbox/
+my-inbox/
+demo-inbox/
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

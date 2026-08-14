@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose a focused improvement.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What workflow is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: network
+    attributes:
+      label: Does this require network access?
+      options: ["No", "Optional", "Yes"]
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Privacy and security impact
+      description: Explain what data would be read, stored, or transmitted.
+    validations:
+      required: true
