@@ -1,6 +1,6 @@
 # Codex for Open Source 申请材料
 
-> 状态：**已公开，暂不建议立即提交。** 仓库、首个 Release 和跨平台 CI 已完成；下一阶段需要积累真实的维护和使用证据。本文案不得用于夸大 Star、下载量或用户规模。
+> 状态：**工程与维护证据已具备，仍建议等待真实外部使用证据后提交。** 仓库已有两个 Release、两个合并 PR、关闭 Issue 和跨平台 CI；下一阶段重点是获得可核实的外部反馈或使用记录。本文案不得用于夸大 Star、下载量或用户规模。
 
 ## 当前资料状态
 
@@ -12,9 +12,10 @@
 | 维护角色 | 主要维护者 | 通过仓库所有权、提交、Issue 和 Release 证明 |
 | ChatGPT 账号邮箱 | 由申请人填写 | 必须与 ChatGPT 账号关联邮箱一致 |
 | OpenAI 组织 ID | 由申请人填写 | 从 API 平台组织设置复制，不要公开在仓库 |
-| 首个版本 | `v0.1.0` | 已发布 |
-| CI | Windows、Ubuntu；Node.js 20、24 | 首次运行通过 |
-| 当前公开指标 | 0 Star、0 Fork、1 Release、3 个开放路线图 Issue | 只填写可验证数据 |
+| 已发布版本 | `v0.1.0`、`v0.2.0` | 2 个 Release 均已发布 |
+| CI | Windows、Ubuntu；Node.js 20、24 | 最新 `main` 运行通过 |
+| 维护证据 | PR #4、#5 已合并；Issue #1 已关闭 | Issue→PR→CI→Release 闭环可公开验证 |
+| 当前公开指标 | 0 Star、0 Fork、2 个 Release、2 个开放 Issue、2 个合并 PR | 只填写可验证数据 |
 
 ## GitHub 资料建议
 
@@ -46,7 +47,7 @@ Topics：
 
 > Evidence Inbox 是面向中文及 Windows 常见工作流的本地优先开源文件收件箱。它通过内容优先分类、SHA256 去重、人工复核分区和可审计记录，帮助研究者与小团队解决文件名不可靠、重复资料和证据链缺失的问题。核心功能无需云服务或 API key，默认无遥测。项目由我创建并持续维护；当前真实指标为：{{STAR_COUNT}} Stars、{{FORK_COUNT}} Forks、{{RELEASE_COUNT}} 个 Release、{{USAGE_EVIDENCE}}。这些指标可在公开仓库验证。
 
-提交前必须用申请当天的 GitHub 数据替换所有 `{{...}}`。截至 2026-08-14，公开数据为 0 Star、0 Fork、1 Release、3 个开放路线图 Issue；尚无可验证外部用户数据，应诚实写“项目处于早期阶段”，不要冒充成熟项目。
+提交前必须用申请当天的 GitHub 数据替换所有 `{{...}}`。截至 2026-08-15，公开数据为 0 Star、0 Fork、2 个 Release、2 个开放 Issue、1 个关闭 Issue 和 2 个合并 PR；[最新 `main` CI](https://github.com/ll1840549-ctrl/evidence-inbox/actions/runs/31888487065) 已通过。尚无可验证外部用户数据，应诚实写“项目处于早期阶段”，不要冒充成熟项目。
 
 ### 感兴趣的支持
 
@@ -66,8 +67,9 @@ Topics：
 满足以下条件后再最终润色和提交：
 
 - 仓库公开且 README 快速开始在干净机器可复现；
-- v0.1.0 Release 与 tag 已发布；
-- Windows、Ubuntu CI 均通过；
+- v0.1.0、v0.2.0 Release 与 tag 已发布；
+- Windows、Ubuntu 的 Node.js 20、24 CI 均通过；
+- 至少一个 Issue→PR→CI→Release 维护闭环可验证；
 - GitHub 资料公开且身份信息一致；
 - 有真实 Issue/反馈/使用记录，或能够具体说明生态重要性；
 - 表单中的全部数字、角色和用途可验证；
