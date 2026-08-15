@@ -5,7 +5,7 @@
 
 一个零第三方运行时依赖、本地优先的文件收件箱。把文件拖进 `inbox`，它会按**内容**而不是文件名进行分类，计算 SHA256 去重，并生成可审计的证据记录。
 
-> v0.1 支持 UTF-8 文本、Markdown、CSV、JSON、HTML、日志和常见源代码文件。PDF、Office 与 OCR 仍在路线图中，暂时会安全地进入人工复核区。
+> v0.2 支持 UTF-8 文本、Markdown、CSV、JSON、HTML、日志和常见源代码文件，并可在处理中断后自动续办。PDF、Office 与 OCR 仍在路线图中，暂时会安全地进入人工复核区。
 
 [English README](README.en.md)
 
@@ -15,7 +15,7 @@
 
 - 内容优先分类，文件名只作为弱提示；
 - SHA256 内容指纹和重复文件关联；
-- `processed`、`needs_review`、`duplicate`、`failed` 分区；
+- `processing` 暂存作业与中断恢复，以及 `processed`、`needs_review`、`duplicate`、`failed` 分区；
 - `index.json` 结构化索引与 `audit.jsonl` 追加式审计日志；
 - `verify` 命令检测归档文件缺失或被修改；
 - 默认不联网、无遥测、不需要 API 密钥。
@@ -61,12 +61,18 @@ my-inbox/
 ├── needs_review/   # 不支持或低置信度，需要人工处理
 ├── duplicate/      # SHA256 已存在
 ├── failed/         # 处理异常
-├── processing/     # 为后续崩溃恢复流程预留
+├── processing/     # 带元数据的暂存作业；下次扫描自动恢复
 ├── index.json      # 当前证据索引
 └── audit.jsonl     # 追加式处理事件
 ```
 
 每条记录包括原始文件名、收件箱相对路径、归档路径、SHA256、字节数、分类、置信度、匹配关键词、处理状态和导入时间。
+
+## 中断恢复
+
+`scan` 和 `watch` 会先把稳定文件移动到 `processing/<job-id>/payload`，并将原始文件名、收件箱相对路径和认领时间写入 `job.json`。最终归档位置和记录内容也会在提交前写入该作业，因此进程在哈希、归档或记账阶段中断后，下次扫描能够安全续办。
+
+索引写入和审计事件按记录 ID 幂等提交。恢复流程会重新校验归档文件的 SHA256，不会用不同内容覆盖已有目标。`doctor` 输出中的 `processing_jobs` 可用于查看等待恢复的作业数。
 
 ## 命令
 
@@ -101,6 +107,7 @@ v0.1 使用可审查的关键词评分器，支持财务报告、研究报告、
 ```powershell
 npm run check
 npm test
+npm run test:coverage
 npm run verify
 ```
 

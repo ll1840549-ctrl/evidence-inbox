@@ -1,18 +1,35 @@
 {
   "name": "evidence-inbox-local",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local-first evidence inbox with content-first classification, SHA256 de-duplication, and audit trails.",
   "type": "module",
+  "files": [
+    "src",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
   "bin": {
     "evidence-inbox": "src/cli.js"
   },
   "scripts": {
-    "check": "node --check src/cli.js && node --check src/pipeline.js && node --check src/store.js",
+    "check": "node --check src/classify.js && node --check src/cli.js && node --check src/constants.js && node --check src/extract.js && node --check src/index.js && node --check src/pipeline.js && node --check src/store.js && node --check src/utils.js",
     "test": "node --test",
-    "verify": "npm run check && npm test"
+    "test:coverage": "node --experimental-test-coverage --test",
+    "verify": "npm run check && npm run test:coverage"
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ll1840549-ctrl/evidence-inbox.git"
+  },
+  "homepage": "https://github.com/ll1840549-ctrl/evidence-inbox#readme",
+  "bugs": {
+    "url": "https://github.com/ll1840549-ctrl/evidence-inbox/issues"
   },
   "keywords": [
     "document-management",

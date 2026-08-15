@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { listRecords, scanInbox, verifyRecords } from "../src/pipeline.js";
+import { doctorWorkspace, listRecords, scanInbox, verifyRecords } from "../src/pipeline.js";
 import { initWorkspace } from "../src/store.js";
 
 async function temporaryWorkspace() {
@@ -64,4 +64,69 @@ test("routes low-confidence text to manual review", async () => {
   const [record] = await scanInbox(root);
   assert.equal(record.status, "needs_review");
   assert.equal(record.review_reason, "low_classification_confidence");
+});
+
+for (const stage of ["claimed", "hashed", "stored", "recorded"]) {
+  test(`recovers idempotently after interruption at ${stage}`, async () => {
+    const { root, paths } = await temporaryWorkspace();
+    await writeFile(
+      path.join(paths.inbox, "recovery.txt"),
+      "研究报告：行业分析、市场规模、竞争格局、投资逻辑与风险提示。",
+      "utf8",
+    );
+
+    let interrupted = false;
+    await assert.rejects(
+      scanInbox(root, {
+        onCheckpoint(current) {
+          if (!interrupted && current === stage) {
+            interrupted = true;
+            throw new Error(`simulated interruption:${stage}`);
+          }
+        },
+      }),
+      new RegExp(`simulated interruption:${stage}`),
+    );
+
+    assert.equal((await readdir(paths.inbox)).length, 0);
+    assert.equal((await readdir(paths.processing)).length, 1);
+    assert.equal((await doctorWorkspace(root)).processing_jobs, 1);
+
+    const recovered = await scanInbox(root);
+    assert.equal(recovered.length, 1);
+    assert.equal(recovered[0].status, "processed");
+    assert.equal((await scanInbox(root)).length, 0);
+    assert.equal((await readdir(paths.processing)).length, 0);
+
+    const index = JSON.parse(await readFile(paths.index, "utf8"));
+    assert.equal(index.records.length, 1);
+    const audit = (await readFile(paths.audit, "utf8")).trim().split(/\r?\n/);
+    assert.equal(audit.length, 1);
+    assert.deepEqual((await verifyRecords(root)).map((item) => item.status), ["ok"]);
+  });
+}
+
+test("cleans an empty abandoned job without losing the inbox file", async () => {
+  const { root, paths } = await temporaryWorkspace();
+  await mkdir(path.join(paths.processing, "empty-job"));
+  await writeFile(
+    path.join(paths.inbox, "still-here.txt"),
+    "会议纪要：参会人员确认议程和行动项。",
+    "utf8",
+  );
+
+  const [record] = await scanInbox(root);
+  assert.equal(record.status, "processed");
+  assert.equal((await readdir(paths.processing)).length, 0);
+});
+
+test("leaves a payload untouched when recovery metadata is invalid", async () => {
+  const { root, paths } = await temporaryWorkspace();
+  const jobDirectory = path.join(paths.processing, "invalid-job");
+  await mkdir(jobDirectory);
+  await writeFile(path.join(jobDirectory, "payload"), "do not delete", "utf8");
+  await writeFile(path.join(jobDirectory, "job.json"), "{}", "utf8");
+
+  await assert.rejects(scanInbox(root), /Invalid processing job metadata/);
+  assert.equal(await readFile(path.join(jobDirectory, "payload"), "utf8"), "do not delete");
 });
