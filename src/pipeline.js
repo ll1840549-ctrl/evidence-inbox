@@ -307,7 +307,7 @@ export async function scanInbox(root, options = {}) {
   const records = await recoverProcessing(root, paths, options);
   const files = await listFiles(paths.inbox);
   for (const filePath of files) {
-    if ((await fileAgeMs(filePath)) < minAgeMs) continue;
+    if (minAgeMs > 0 && (await fileAgeMs(filePath)) < minAgeMs) continue;
     records.push(await ingestFile(root, paths, filePath, options));
   }
   return records;

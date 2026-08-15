@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Record and audit commits are idempotent across recovery attempts.
+- Default scans accept files immediately; stability-age filtering applies only when explicitly requested.
 - Stored paths are rejected when they escape the workspace root.
 - Workspace diagnostics report pending and unexpected processing entries.
 
