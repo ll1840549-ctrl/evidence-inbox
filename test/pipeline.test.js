@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -64,6 +64,29 @@ test("routes low-confidence text to manual review", async () => {
   const [record] = await scanInbox(root);
   assert.equal(record.status, "needs_review");
   assert.equal(record.review_reason, "low_classification_confidence");
+});
+
+test("default scan accepts a file whose mtime is slightly in the future", async () => {
+  const { root, paths } = await temporaryWorkspace();
+  const filePath = path.join(paths.inbox, "future-mtime.txt");
+  await writeFile(filePath, "会议纪要：参会人员确认议程和行动项。", "utf8");
+  const future = new Date(Date.now() + 5000);
+  await utimes(filePath, future, future);
+
+  const [record] = await scanInbox(root);
+  assert.equal(record.status, "processed");
+});
+
+test("positive stability window skips a young file and later accepts it", async () => {
+  const { root, paths } = await temporaryWorkspace();
+  const filePath = path.join(paths.inbox, "young-file.txt");
+  await writeFile(filePath, "会议纪要：参会人员确认议程和行动项。", "utf8");
+
+  assert.equal((await scanInbox(root, { minAgeMs: 1500 })).length, 0);
+  const old = new Date(Date.now() - 2000);
+  await utimes(filePath, old, old);
+  const [record] = await scanInbox(root, { minAgeMs: 1500 });
+  assert.equal(record.status, "processed");
 });
 
 for (const stage of ["claimed", "hashed", "stored", "recorded"]) {
