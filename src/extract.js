@@ -15,8 +15,8 @@ function cleanHtml(text) {
     .trim();
 }
 
-export async function extractText(filePath) {
-  const extension = path.extname(filePath).toLocaleLowerCase();
+export async function extractText(filePath, options = {}) {
+  const extension = path.extname(options.fileName ?? filePath).toLocaleLowerCase();
   if (!TEXT_EXTENSIONS.has(extension)) {
     return {
       supported: false,

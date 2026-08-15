@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { copyFile, mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export async function ensureDir(directory) {
@@ -63,10 +63,26 @@ export async function fileAgeMs(filePath, now = Date.now()) {
   return now - details.mtimeMs;
 }
 
+export async function pathExists(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch (error) {
+    if (error.code === "ENOENT") return false;
+    throw error;
+  }
+}
+
 export function relativePortable(root, target) {
   return path.relative(root, target).split(path.sep).join("/");
 }
 
 export function resolvePortable(root, relativePath) {
-  return path.resolve(root, ...relativePath.split("/"));
+  const resolvedRoot = path.resolve(root);
+  const resolved = path.resolve(resolvedRoot, ...relativePath.split("/"));
+  const relative = path.relative(resolvedRoot, resolved);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`Path escapes workspace: ${relativePath}`);
+  }
+  return resolved;
 }

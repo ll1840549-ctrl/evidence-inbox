@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { INDEX_VERSION, WORKSPACE_DIRS } from "./constants.js";
 import { appendJsonLine, atomicWriteJson, ensureDir, readJson } from "./utils.js";
@@ -38,18 +39,51 @@ export async function loadIndex(root) {
 
 export async function addRecord(root, record, event = "recorded") {
   const { paths, index } = await loadIndex(root);
-  index.records.push(record);
-  index.updated_at = new Date().toISOString();
-  await atomicWriteJson(paths.index, index);
-  await appendJsonLine(paths.audit, {
-    event,
-    at: new Date().toISOString(),
-    record_id: record.id,
-    sha256: record.sha256,
-    status: record.status,
-    stored_path: record.stored_path,
+  const existing = index.records.find((candidate) => candidate.id === record.id);
+
+  if (existing) {
+    const sameTransaction =
+      existing.sha256 === record.sha256 &&
+      existing.status === record.status &&
+      existing.stored_path === record.stored_path;
+    if (!sameTransaction) throw new Error(`Record ID collision: ${record.id}`);
+  } else {
+    index.records.push(record);
+    index.updated_at = new Date().toISOString();
+    await atomicWriteJson(paths.index, index);
+  }
+
+  if (!(await hasAuditEvent(paths.audit, event, record.id))) {
+    await appendJsonLine(paths.audit, {
+      event,
+      at: new Date().toISOString(),
+      record_id: record.id,
+      sha256: record.sha256,
+      status: record.status,
+      stored_path: record.stored_path,
+    });
+  }
+  return existing ?? record;
+}
+
+async function hasAuditEvent(auditPath, event, recordId) {
+  let content;
+  try {
+    content = await readFile(auditPath, "utf8");
+  } catch (error) {
+    if (error.code === "ENOENT") return false;
+    throw error;
+  }
+
+  return content.split(/\r?\n/).some((line) => {
+    if (!line) return false;
+    try {
+      const entry = JSON.parse(line);
+      return entry.event === event && entry.record_id === recordId;
+    } catch {
+      return false;
+    }
   });
-  return record;
 }
 
 export async function findOriginalByHash(root, sha256) {

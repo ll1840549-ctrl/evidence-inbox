@@ -1,5 +1,5 @@
 export const APP_NAME = "Evidence Inbox";
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 export const INDEX_VERSION = 1;
 
 export const WORKSPACE_DIRS = [
